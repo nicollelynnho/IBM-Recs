@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 ## Nicolle Ho
@@ -28,7 +28,7 @@
 # 
 # At the end of the notebook, you will find directions for how to submit your work.  Let's get started by importing the necessary libraries and reading in the data.
 
-# In[108]:
+# In[77]:
 
 
 import pandas as pd
@@ -38,6 +38,7 @@ import project_tests as t
 import pickle
 from collections import Counter
 import statistics
+from sklearn.metrics import accuracy_score
 
 get_ipython().run_line_magic('matplotlib', 'inline')
 
@@ -50,7 +51,7 @@ del df_content['Unnamed: 0']
 df.head()
 
 
-# In[109]:
+# In[3]:
 
 
 # Show df_content to get an idea of the data
@@ -63,38 +64,38 @@ df_content.head()
 # 
 # `1.` What is the distribution of how many articles a user interacts with in the dataset?  Provide a visual and descriptive statistics to assist with giving a look at the number of times each user interacts with an article.  
 
-# In[110]:
+# In[4]:
 
 
 df.shape
 
 
-# In[111]:
+# In[5]:
 
 
 df['email'].nunique()
 
 
-# In[112]:
+# In[6]:
 
 
 #most users interact with 0-10 articles 
 df.groupby('email')[['article_id']].count().hist(bins=40)
 
 
-# In[113]:
+# In[7]:
 
 
 df.head()
 
 
-# In[114]:
+# In[8]:
 
 
 df.groupby('email').count().sort_values(by='article_id',ascending=False).head()
 
 
-# In[115]:
+# In[9]:
 
 
 # 28% of users only interact with one article 
@@ -102,13 +103,13 @@ l = list(df.groupby('email')['article_id'].count().values)
 Counter(l).most_common(5)
 
 
-# In[116]:
+# In[10]:
 
 
 statistics.median(l)
 
 
-# In[117]:
+# In[11]:
 
 
 # Fill in the median and maximum number of user_article interactions below
@@ -119,25 +120,25 @@ max_views_by_user = 364
 
 # `2.` Explore and remove duplicate articles from the **df_content** dataframe.  
 
-# In[118]:
+# In[12]:
 
 
 # Find and explore duplicate articles
 
 
-# In[119]:
+# In[13]:
 
 
 df_content.duplicated().unique()
 
 
-# In[120]:
+# In[14]:
 
 
 # Remove any rows that have the same article_id - only keep the first
 
 
-# In[121]:
+# In[15]:
 
 
 df_content = df_content.drop_duplicates(subset = 'article_id', keep='first')
@@ -150,31 +151,31 @@ df_content = df_content.drop_duplicates(subset = 'article_id', keep='first')
 # **c.** The number of unique users in the dataset. (excluding null values) <br>
 # **d.** The number of user-article interactions in the dataset.
 
-# In[122]:
+# In[16]:
 
 
 df['article_id'].nunique()
 
 
-# In[123]:
+# In[17]:
 
 
 df_content.shape[0]
 
 
-# In[124]:
+# In[18]:
 
 
 df['email'].nunique()
 
 
-# In[125]:
+# In[19]:
 
 
 df.shape[0]
 
 
-# In[126]:
+# In[20]:
 
 
 unique_articles = 714
@@ -185,20 +186,20 @@ user_article_interactions = 45993
 
 # `4.` Use the cells below to find the most viewed **article_id**, as well as how often it was viewed.  After talking to the company leaders, the `email_mapper` function was deemed a reasonable way to map users to ids.  There were a small number of null values, and it was found that all of these null values likely belonged to a single user (which is how they are stored using the function below).
 
-# In[127]:
+# In[21]:
 
 
 df.groupby('article_id').count().sort_values(by='title',ascending=False).head(1)
 
 
-# In[128]:
+# In[22]:
 
 
 most_viewed_article_id = '1429.0'
 max_views = 937
 
 
-# In[129]:
+# In[23]:
 
 
 ## No need to change the code here - this will be helpful for later parts of the notebook
@@ -225,7 +226,7 @@ df['user_id'] = email_encoded
 df.head()
 
 
-# In[130]:
+# In[24]:
 
 
 ## If you stored all your results in the variable names above, 
@@ -252,7 +253,7 @@ t.sol_1_test(sol_1_dict)
 # 
 # `1.` Fill in the function below to return the **n** top articles ordered with most interactions as the top. Test your function using the tests below.
 
-# In[131]:
+# In[25]:
 
 
 def get_top_articles(n, df=df):
@@ -284,14 +285,14 @@ def get_top_article_ids(n, df=df):
     return top_articles # Return the top article ids
 
 
-# In[132]:
+# In[26]:
 
 
 print(get_top_articles(10))
 print(get_top_article_ids(10))
 
 
-# In[133]:
+# In[27]:
 
 
 # Test your function by returning the top 5, 10, and 20 articles
@@ -320,44 +321,8 @@ t.sol_2_test(get_top_articles)
 # * **If a user has not interacted with an item, then place a zero where the user-row meets for that article-column**. 
 # 
 # Use the tests to make sure the basic structure of your matrix matches what is expected by the solution.
-# create the user-article matrix with 1's and 0's
 
-def create_user_item_matrix(df):
-    '''
-    INPUT:
-    df - pandas dataframe with article_id, title, user_id columns
-    
-    OUTPUT:
-    user_item - user item matrix 
-    
-    Description:
-    Return a matrix with user ids as rows and article ids on the columns with 1 values where a user interacted with 
-    an article and a 0 otherwise
-    '''
-    # Fill in the function here
-    user_ids = df['user_id'].unique()
-    article_ids = df['article_id'].unique()
-    
-    d = {}
-
-    for uid in user_ids:
-        article_bin = []
-        count = 0
-        a = df[df['user_id']==uid]['article_id'].unique()
-        for aid in article_ids:
-            if (aid in set(a)) == True:
-                article_bin.append(1)
-                count = count+1
-            else:
-                article_bin.append(0)
-        d[uid] = article_bin
-    
-    user_item = pd.DataFrame.from_dict(d, orient='index')
-  
-    return user_item # return the user_item matrix 
-
-user_item = create_user_item_matrix(df)
-# In[134]:
+# In[28]:
 
 
 # create the user-article matrix with 1's and 0's
@@ -398,7 +363,7 @@ def create_user_item_matrix(df):
 user_item = create_user_item_matrix(df)
 
 
-# In[135]:
+# In[29]:
 
 
 ## Tests: You should just need to run this cell.  Don't change the code.
@@ -412,7 +377,14 @@ print("You have passed our quick tests!  Please proceed!")
 # 
 # Use the tests to test your function.
 
-# In[136]:
+# In[30]:
+
+
+def sortSecond(val): 
+    return val[1]
+
+
+# In[31]:
 
 
 def find_similar_users(user_id, user_item=user_item):
@@ -432,27 +404,30 @@ def find_similar_users(user_id, user_item=user_item):
     
     '''
     # compute similarity of each user to the provided user
-    scores = {}
-    for row in (user_item.index-1):
-        if row == user_id:
-            continue
-        else:
-            score = sum(user_item.iloc[user_id]*user_item.iloc[row])
-            scores[row] = score
-    
+    similarity = []
+    for user in range(1, user_item.shape[0]):
+    #for user in range(1, user_item.shape[0]+1):
+        #USE NP.DOT TO COMPUTE SIMILARITY BETWEEN USER_ID AND USER
+        sim = np.dot(user_item.iloc[user_id].values,user_item.iloc[user].values)
+        similarity.append((user, sim))
+        #break
+
     # sort by similarity
-    scores = {k: v for k, v in sorted(scores.items(), key=lambda item: item[1], reverse = True)}
+    #USE A LAMBDA FUNCTION HERE TO EXTRACT 2ND ELEMENT OF EACH ITEM IN SIMILARITY
+    similarity.sort(key=sortSecond, reverse=True)
+    #print(similarity)
 
     # create list of just the ids
-    most_similar_users = list(scores.keys())
-   
+    most_similar_users = [ item[0] for item in similarity]
+
     # remove the own user's id
+    most_similar_users.remove(user_id)   
  
     return most_similar_users # return a list of the users in order from most to least similar
         
 
 
-# In[137]:
+# In[32]:
 
 
 # Do a spot check of your function
@@ -463,7 +438,7 @@ print("The 3 most similar users to user 46 are: {}".format(find_similar_users(46
 
 # `3.` Now that you have a function that provides the most similar users to each user, you will want to use these users to find articles you can recommend.  Complete the functions below to return the articles you would recommend to each user. 
 
-# In[138]:
+# In[33]:
 
 
 #def get_article_names(article_ids, df=df):
@@ -564,14 +539,14 @@ def user_user_recs(user_id, m=10):
     return recs[:m]
 
 
-# In[139]:
+# In[34]:
 
 
 # Check Results
 get_article_names(user_user_recs(1, 10)) # Return 10 recommendations for user 1
 
 
-# In[140]:
+# In[35]:
 
 
 # Test your functions here - No need to change this code - just run this cell
@@ -591,7 +566,7 @@ print("If this is all you see, you passed all of our tests!  Nice job!")
 # 
 # * Instead of arbitrarily choosing articles from the user where the number of recommended articles starts below m and ends exceeding m, choose articles with the articles with the most total interactions before choosing those with fewer total interactions. This ranking should be  what would be obtained from the **top_articles** function you wrote earlier.
 
-# In[141]:
+# In[36]:
 
 
 def get_top_sorted_users(user_id, df=df, user_item=user_item):
@@ -685,7 +660,7 @@ def user_user_recs_part2(user_id, m=10):
     return recs[:m], rec_names[:m]
 
 
-# In[142]:
+# In[37]:
 
 
 # Quick spot check - don't change this code - just use it to test your functions
@@ -697,7 +672,7 @@ print("The top 10 recommendations for user 20 are the following article names:")
 print(rec_names)
 
 
-# In[143]:
+# In[38]:
 
 
 def get_top_sorted_users(user_id, df=df, user_item=user_item):
@@ -718,13 +693,13 @@ def get_top_sorted_users(user_id, df=df, user_item=user_item):
     return neighbors_df.sort_values(by=['similarity','num_interactions'],ascending=False) # Return the dataframe specified in the doc_string
 
 
-# In[144]:
+# In[39]:
 
 
 get_top_sorted_users(1).head()
 
 
-# In[145]:
+# In[40]:
 
 
 get_top_sorted_users(131).head(10)
@@ -732,7 +707,7 @@ get_top_sorted_users(131).head(10)
 
 # `5.` Use your functions from above to correctly fill in the solutions to the dictionary below.  Then test your dictionary against the solution.  Provide the code you need to answer each following the comments below.
 
-# In[146]:
+# In[41]:
 
 
 ### Tests with a dictionary of results
@@ -741,7 +716,7 @@ user1_most_sim = 3933 # Find the user that is most similar to user 1
 user131_10th_sim = 242 # Find the 10th most similar user to user 131
 
 
-# In[147]:
+# In[42]:
 
 
 ## Dictionary Test Here
@@ -759,7 +734,7 @@ t.sol_5_test(sol_5_dict)
 
 # `7.` Using your existing functions, provide the top 10 recommended articles you would provide for the a new user below.  You can test your function against our thoughts to make sure we are all on the same page with how we might make a recommendation.
 
-# In[148]:
+# In[43]:
 
 
 new_user = '0.0'
@@ -776,7 +751,7 @@ for t in temp:
 # Your recommendations here
 
 
-# In[149]:
+# In[44]:
 
 
 assert set(new_user_recs) == set(['1314.0','1429.0','1293.0','1427.0','1162.0','1364.0','1304.0','1170.0','1431.0','1330.0']), "Oops!  It makes sense that in this case we would want to recommend the most popular articles, because we don't know anything about these users."
@@ -792,7 +767,7 @@ print("That's right!  Nice job!")
 # 
 # ### This part is NOT REQUIRED to pass this project.  However, you may choose to take this on as an extra way to show off your skills.
 
-# In[43]:
+# In[ ]:
 
 
 def make_content_recs():
@@ -829,14 +804,14 @@ def make_content_recs():
 # 
 # `1.` You should have already created a **user_item** matrix above in **question 1** of **Part III** above.  This first question here will just require that you run the cells to get things set up for the rest of **Part V** of the notebook. 
 
-# In[150]:
+# In[45]:
 
 
 # Load the matrix here
 user_item_matrix = pd.read_pickle('user_item_matrix.p')
 
 
-# In[151]:
+# In[46]:
 
 
 # quick look at the matrix
@@ -845,7 +820,7 @@ user_item_matrix.head()
 
 # `2.` In this situation, you can use Singular Value Decomposition from [numpy](https://docs.scipy.org/doc/numpy-1.14.0/reference/generated/numpy.linalg.svd.html) on the user-item matrix.  Use the cell to perform SVD, and explain why this is different than in the lesson.
 
-# In[152]:
+# In[47]:
 
 
 # Perform SVD on the User-Item Matrix Here
@@ -857,7 +832,7 @@ u, s, vt = np.linalg.svd(user_item_matrix, full_matrices=True)# use the built in
 
 # `3.` Now for the tricky part, how do we choose the number of latent features to use?  Running the below cell, you can see that as the number of latent features increases, we obtain a lower error rate on making predictions for the 1 and 0 values in the user-item matrix.  Run the cell below to get an idea of how the accuracy improves as we increase the number of latent features.
 
-# In[153]:
+# In[48]:
 
 
 num_latent_feats = np.arange(10,700+10,20)
@@ -893,7 +868,7 @@ plt.title('Accuracy vs. Number of Latent Features');
 # * How many articles can we make predictions for in the test set?  
 # * How many articles are we not able to make predictions for because of the cold start problem?
 
-# In[154]:
+# In[49]:
 
 
 df_train = df.head(40000)
@@ -926,13 +901,29 @@ def create_test_and_train_user_item(df_train, df_test):
 user_item_train, user_item_test, test_idx, test_arts = create_test_and_train_user_item(df_train, df_test)
 
 
-# In[155]:
+# In[50]:
 
 
 user_item_test.head()
 
 
-# In[156]:
+# In[61]:
+
+
+print('How many users can we make predictions for in the test set?')
+print(len(set(user_item_train.index).intersection(set(user_item_test.index))))
+
+print('How many cant predict due to cold start problem')
+print(user_item_test.shape[0] - len(set(user_item_train.index).intersection(set(user_item_test.index))))
+
+print('articles we can predict in test set')
+print(len(set(user_item_test.columns).intersection(set(user_item_train.columns))))
+
+print('articles cant predict due to cold start')
+print(user_item_test.shape[1] - len(set(user_item_test.columns).intersection(set(user_item_train.columns))))
+
+
+# In[62]:
 
 
 # Replace the values in the dictionary below
@@ -956,7 +947,7 @@ t.sol_4_test(sol_4_dict)
 # 
 # Use the cells below to explore how well SVD works towards making predictions for recommendations on the test data.  
 
-# In[ ]:
+# In[64]:
 
 
 # fit SVD on the user_item_train matrix
@@ -964,105 +955,77 @@ u_train, s_train, vt_train = np.linalg.svd(user_item_train)# fit svd similar to 
 u_train.shape, s_train.shape, vt_train.shape
 
 
-# In[ ]:
+# In[65]:
 
 
 # Use these cells to see how well you can use the training 
 # decomposition to predict on test data
 
 
-# Citation: February 9, 2020
-# 
-# I referenced matteobonanomi's code for a few of the following cells. This code provided excellent guidance for my own analysis.   
-# 
-# https://github.com/matteobonanomi/dsnd-recommend-ibm/blob/master/Recommendations_with_IBM.ipynb
-
-# In[159]:
+# In[95]:
 
 
-train_uid = np.array(user_item_train.index) # training users
-train_aid = np.array(user_item_train.columns) # training articles
-test_uid = np.array(user_item_test.index) # test users
-test_aid = np.array(user_item_test.columns) # test articles 
+row_idxs = user_item_train.index.isin(test_idx)
+col_idxs = user_item_train.columns.isin(test_arts)
+u_test = u_train[row_idxs, :]
+vt_test = vt_train[:,col_idxs]
 
 
-# In[184]:
+# In[96]:
 
 
-len(train_uid),len(train_aid),len(test_uid),len(test_aid)
+# Test data
+train_idx = user_item_train.index
+test_rows = user_item_test.index.isin(train_idx)
+sub_user_item_test = user_item_test.loc[test_rows]
 
 
-# In[160]:
+# In[97]:
 
 
-actual_test_users = np.intersect1d(test_uid,train_uid) # overlap of training and test users
-actual_test_articles = np.intersect1d(test_aid,train_aid) # overlap of training and test articles 
+latent_feats = np.arange(10, 700+10, 20)
+
+all_errs, train_errs, test_errs = [], [], []
 
 
-# In[185]:
-
-
-len(actual_test_users),len(actual_test_articles)
-
-
-# In[201]:
-
-
-#train_user_index = np.where(train_uid)[0] # trainig user index
-train_user_index = np.where(np.in1d(train_uid,actual_test_users))[0]
-#train_art_index = np.where(train_aid)[0] # training art index
-train_art_index = np.where(np.in1d(train_aid,actual_test_articles))[0]
-test_user_index = np.where(np.in1d(test_uid, actual_test_users))[0]
-
-
-# In[202]:
-
-
-test_final = user_item_test.iloc[test_user_index,:]
-train_final = user_item_train.iloc[train_user_index,train_art_index]
-
-
-# In[218]:
-
-
-test_final.head()
-
-
-# In[217]:
-
-
-num_latent_feats = np.arange(10,100,20)
-sum_errs = []
-
-for k in num_latent_feats:
+for k in latent_feats:
     # restructure with k latent features
-    s_new, u_new, vt_new = np.diag(s_train[:k]), u_train[:, :k], vt_train[:k, :]
-    s_new_test, u_new_test, vt_new_test = s_new, u_train[train_user_index, :k], vt_train[:k, train_art_index]
-
+    s_train_lat, u_train_lat, vt_train_lat = np.diag(s_train[:k]), u_train[:, :k], vt_train[:k, :]
+    
+    u_test_lat, vt_test_lat = u_test[:, :k], vt_test[:k, :]
+    
     # take dot product
-    user_item_est = np.around(np.dot(np.dot(u_new_test, s_new_test), vt_new_test))
-    #print(len(s_new),len(u_new),len(vt_new))
-    #break
+    user_item_train_preds = np.around(np.dot(np.dot(u_train_lat, s_train_lat), vt_train_lat))
+    user_item_test_preds = np.around(np.dot(np.dot(u_test_lat, s_train_lat), vt_test_lat))
+    
+    all_errs.append(1 - ((np.sum(user_item_test_preds)+np.sum(np.sum(sub_user_item_test)))/(sub_user_item_test.shape[0]*sub_user_item_test.shape[1])))
 
-    # compute error for each prediction to actual value
-    diffs = np.subtract(test_final, user_item_est)
-    
-    # total errors and keep track of them
-    err = np.sum(np.sum(np.abs(diffs)))
-    sum_errs.append(err)
-    
-    
-plt.plot(num_latent_feats, 1 - np.array(sum_errs)/df.shape[0]);
-plt.xlabel('Number of Latent Features');
-plt.ylabel('Accuracy');
-plt.title('Accuracy vs. Number of Latent Features');
+    # compute prediction accuracy
+    train_errs.append(accuracy_score(user_item_train.values.flatten(), user_item_train_preds.flatten()))
+    test_errs.append(accuracy_score(sub_user_item_test.values.flatten(), user_item_test_preds.flatten()))
+
+
+plt.figure()
+plt.plot(latent_feats, all_errs, label='All Errors')
+plt.plot(latent_feats, train_errs, label='Train')
+plt.plot(latent_feats, test_errs, label='Test')
+plt.xlabel('Number of Latent Features')
+plt.ylabel('Accuracy')
+#plt.ylim(0.960,1)
+plt.title('Accuracy vs. Number of Latent Features')
+plt.legend()
+plt.show()
 
 
 # `6.` Use the cell below to comment on the results you found in the previous question. Given the circumstances of your results, discuss what you might do to determine if the recommendations you make with any of the above recommendation systems are an improvement to how users currently find articles? 
 
 # **Your response here.**
 
-# Based on the results, as the number of latent features increase the accuracy decreases. Here it would be better to use fewer latent features. In order to determine if the recommendations are an improvement to current recommendation systems, it would be helpful to determine if (holding other factors constant) user satisfaction increases. We could examine customer churn, retention rates, number of new customers, etc. 
+# The overall accuracy is very high across all sets for any number of latent features. In the training set, accuracy logarithmically increases as the number of latent features increases in the training set. It peaks at nearly 100% accuracy and troughs at 99% accurracy. In the test and overall set, accuracy logarithmically decreases as the number of latent features increases. It peaks at 98% accuracy and troughs at 96% accuracy. 
+# 
+# The accuracy is reported to be very high and it is important to verify the results in different ways. Since the dataset is inbalanced it might be interesting to explore undersampling techniques to see if that improves results.
+# 
+# We could also explore the effectiveness of recommendations by exploring metrics of customer satisfaction. We could explore metrics such as reader churn, reader retention rates, change in revenue, reader time spent on the website, number of new readers etc. 
 
 # <a id='conclusions'></a>
 # ### Extras
