@@ -28,7 +28,7 @@
 # 
 # At the end of the notebook, you will find directions for how to submit your work.  Let's get started by importing the necessary libraries and reading in the data.
 
-# In[77]:
+# In[2]:
 
 
 import pandas as pd
@@ -384,9 +384,71 @@ def sortSecond(val):
     return val[1]
 
 
-# In[31]:
+# In[45]:
 
 
+#New Version
+def find_similar_users(user_id, user_item=user_item):
+    '''
+    INPUT:
+    user_id - (int) a user_id
+    user_item - (pandas dataframe) matrix of users by articles: 
+                1's when a user has interacted with an article, 0 otherwise
+    
+    OUTPUT:
+    similar_users - (list) an ordered list where the closest users (largest dot product users)
+                    are listed first
+    
+    Description:
+    Computes the similarity of every pair of users based on the dot product
+    Returns an ordered
+    
+    '''
+    # compute similarity of each user to the provided user
+    similarity = []
+    #for user in range(1, user_item.shape[0]):
+    #for user in range(1, user_item.shape[0]+1):
+    for i in range(user_item.shape[0]):
+        #USE NP.DOT TO COMPUTE SIMILARITY BETWEEN USER_ID AND USER
+        #sim = np.dot(user_item.loc[user_id].values,user_item.iloc[i].values)
+        sim = np.dot(user_item.loc[user_id],user_item.iloc[i])
+        similarity.append((user_item.iloc[i].name, sim))
+        #break
+
+    # sort by similarity
+    #USE A LAMBDA FUNCTION HERE TO EXTRACT 2ND ELEMENT OF EACH ITEM IN SIMILARITY
+    #similarity.sort(key=sortSecond, reverse=True)
+    similarity.sort(key=lambda x: x[1], reverse=True)
+    #print(similarity)
+
+    # create list of just the ids
+    #most_similar_users = [ item[0] for item in similarity]
+    most_similar_users = [usr_id for usr_id, usr_sim in similarity]
+
+    # remove the own user's id
+    most_similar_users.remove(user_id)   
+ 
+    return most_similar_users # return a list of the users in order from most to least similar
+
+
+# In[46]:
+
+
+# New version output
+print("The 10 most similar users to user 1 are: {}".format(find_similar_users(1)[:10]))
+print("The 5 most similar users to user 3933 are: {}".format(find_similar_users(3933)[:5]))
+print("The 3 most similar users to user 46 are: {}".format(find_similar_users(46)[:3]))
+
+
+# **I am very confused about the similarity function. I was advised to perform the similiarty like the previous function below to get the cell following. Now I am being advised to do it in this new way. Very confusing and frustrating. If there is record of feedback I think we can see that I was advised differently before. I am verifying against other examples of work and they are doing as the new version**
+# 
+# some other examples of the new version 
+# https://github.com/greulist137/Data-Science---Recommendations-with-IBM/blob/master/Recommendations_with_IBM.ipynb
+# https://github.com/mkucz95/recommendation_engine/blob/master/Recommendations_with_IBM.ipynb
+# https://github.com/takahish/Recommendations_with_IBM/blob/master/Recommendations_with_IBM.ipynb
+# 
+# I am now uncertain as to which version is correct. 
+# Previous version
 def find_similar_users(user_id, user_item=user_item):
     '''
     INPUT:
@@ -425,20 +487,14 @@ def find_similar_users(user_id, user_item=user_item):
  
     return most_similar_users # return a list of the users in order from most to least similar
         
-
-
-# In[32]:
-
-
-# Do a spot check of your function
-print("The 10 most similar users to user 1 are: {}".format(find_similar_users(1)[:10]))
-print("The 5 most similar users to user 3933 are: {}".format(find_similar_users(3933)[:5]))
-print("The 3 most similar users to user 46 are: {}".format(find_similar_users(46)[:3]))
-
+# previous output
+# The 10 most similar users to user 1 are: [48, 97, 3696, 3763, 9, 20, 22, 37, 289, 2981]
+# The 5 most similar users to user 3933 are: [22, 48, 121, 125, 1061]
+# The 3 most similar users to user 46 are: [19, 39, 44]
 
 # `3.` Now that you have a function that provides the most similar users to each user, you will want to use these users to find articles you can recommend.  Complete the functions below to return the articles you would recommend to each user. 
 
-# In[33]:
+# In[47]:
 
 
 #def get_article_names(article_ids, df=df):
@@ -539,14 +595,14 @@ def user_user_recs(user_id, m=10):
     return recs[:m]
 
 
-# In[34]:
+# In[48]:
 
 
 # Check Results
 get_article_names(user_user_recs(1, 10)) # Return 10 recommendations for user 1
 
 
-# In[35]:
+# In[49]:
 
 
 # Test your functions here - No need to change this code - just run this cell
@@ -566,7 +622,7 @@ print("If this is all you see, you passed all of our tests!  Nice job!")
 # 
 # * Instead of arbitrarily choosing articles from the user where the number of recommended articles starts below m and ends exceeding m, choose articles with the articles with the most total interactions before choosing those with fewer total interactions. This ranking should be  what would be obtained from the **top_articles** function you wrote earlier.
 
-# In[36]:
+# In[50]:
 
 
 def get_top_sorted_users(user_id, df=df, user_item=user_item):
@@ -660,7 +716,7 @@ def user_user_recs_part2(user_id, m=10):
     return recs[:m], rec_names[:m]
 
 
-# In[37]:
+# In[51]:
 
 
 # Quick spot check - don't change this code - just use it to test your functions
@@ -672,7 +728,7 @@ print("The top 10 recommendations for user 20 are the following article names:")
 print(rec_names)
 
 
-# In[38]:
+# In[52]:
 
 
 def get_top_sorted_users(user_id, df=df, user_item=user_item):
@@ -693,13 +749,13 @@ def get_top_sorted_users(user_id, df=df, user_item=user_item):
     return neighbors_df.sort_values(by=['similarity','num_interactions'],ascending=False) # Return the dataframe specified in the doc_string
 
 
-# In[39]:
+# In[53]:
 
 
 get_top_sorted_users(1).head()
 
 
-# In[40]:
+# In[54]:
 
 
 get_top_sorted_users(131).head(10)
@@ -707,16 +763,16 @@ get_top_sorted_users(131).head(10)
 
 # `5.` Use your functions from above to correctly fill in the solutions to the dictionary below.  Then test your dictionary against the solution.  Provide the code you need to answer each following the comments below.
 
-# In[41]:
+# In[66]:
 
 
 ### Tests with a dictionary of results
 
-user1_most_sim = 3933 # Find the user that is most similar to user 1 
-user131_10th_sim = 242 # Find the 10th most similar user to user 131
+user1_most_sim = 3933# Find the user that is most similar to user 1 
+user131_10th_sim = 242# Find the 10th most similar user to user 131
 
 
-# In[42]:
+# In[70]:
 
 
 ## Dictionary Test Here
@@ -728,13 +784,22 @@ sol_5_dict = {
 t.sol_5_test(sol_5_dict)
 
 
+# I do not understand why this test will not pass. I receive the error 'float' object has no attribute 'sol_5_test'. Other students have been able to pass with similar code. I receive an error saying float object has no attribute 
+# 
+# please see links to students with similar code that works 
+# https://github.com/greulist137/Data-Science---Recommendations-with-IBM/blob/master/Recommendations_with_IBM.ipynb
+# https://github.com/mkucz95/recommendation_engine/blob/master/Recommendations_with_IBM.ipynb
+# https://github.com/takahish/Recommendations_with_IBM/blob/master/Recommendations_with_IBM.ipynb
+# 
+# please advise the best way to proceed 
+
 # `6.` If we were given a new user, which of the above functions would you be able to use to make recommendations?  Explain.  Can you think of a better way we might make recommendations?  Use the cell below to explain a better method for new users.
 
 # **The get_top_articles() and get_top_articles_ids() functions can be used to provide recommendations to new users. Since the top articles are the most popular among all users, it might be popular with a new user too. Recommendations could also be made using other features such as ip address location, though we do not have that information for scope of this project.**
 
 # `7.` Using your existing functions, provide the top 10 recommended articles you would provide for the a new user below.  You can test your function against our thoughts to make sure we are all on the same page with how we might make a recommendation.
 
-# In[43]:
+# In[71]:
 
 
 new_user = '0.0'
@@ -751,7 +816,7 @@ for t in temp:
 # Your recommendations here
 
 
-# In[44]:
+# In[72]:
 
 
 assert set(new_user_recs) == set(['1314.0','1429.0','1293.0','1427.0','1162.0','1364.0','1304.0','1170.0','1431.0','1330.0']), "Oops!  It makes sense that in this case we would want to recommend the most popular articles, because we don't know anything about these users."
@@ -767,7 +832,7 @@ print("That's right!  Nice job!")
 # 
 # ### This part is NOT REQUIRED to pass this project.  However, you may choose to take this on as an extra way to show off your skills.
 
-# In[ ]:
+# In[73]:
 
 
 def make_content_recs():
@@ -804,14 +869,14 @@ def make_content_recs():
 # 
 # `1.` You should have already created a **user_item** matrix above in **question 1** of **Part III** above.  This first question here will just require that you run the cells to get things set up for the rest of **Part V** of the notebook. 
 
-# In[45]:
+# In[74]:
 
 
 # Load the matrix here
 user_item_matrix = pd.read_pickle('user_item_matrix.p')
 
 
-# In[46]:
+# In[75]:
 
 
 # quick look at the matrix
@@ -820,7 +885,7 @@ user_item_matrix.head()
 
 # `2.` In this situation, you can use Singular Value Decomposition from [numpy](https://docs.scipy.org/doc/numpy-1.14.0/reference/generated/numpy.linalg.svd.html) on the user-item matrix.  Use the cell to perform SVD, and explain why this is different than in the lesson.
 
-# In[47]:
+# In[76]:
 
 
 # Perform SVD on the User-Item Matrix Here
@@ -832,7 +897,7 @@ u, s, vt = np.linalg.svd(user_item_matrix, full_matrices=True)# use the built in
 
 # `3.` Now for the tricky part, how do we choose the number of latent features to use?  Running the below cell, you can see that as the number of latent features increases, we obtain a lower error rate on making predictions for the 1 and 0 values in the user-item matrix.  Run the cell below to get an idea of how the accuracy improves as we increase the number of latent features.
 
-# In[48]:
+# In[77]:
 
 
 num_latent_feats = np.arange(10,700+10,20)
@@ -868,7 +933,7 @@ plt.title('Accuracy vs. Number of Latent Features');
 # * How many articles can we make predictions for in the test set?  
 # * How many articles are we not able to make predictions for because of the cold start problem?
 
-# In[49]:
+# In[78]:
 
 
 df_train = df.head(40000)
@@ -901,13 +966,13 @@ def create_test_and_train_user_item(df_train, df_test):
 user_item_train, user_item_test, test_idx, test_arts = create_test_and_train_user_item(df_train, df_test)
 
 
-# In[50]:
+# In[79]:
 
 
 user_item_test.head()
 
 
-# In[61]:
+# In[80]:
 
 
 print('How many users can we make predictions for in the test set?')
@@ -923,7 +988,7 @@ print('articles cant predict due to cold start')
 print(user_item_test.shape[1] - len(set(user_item_test.columns).intersection(set(user_item_train.columns))))
 
 
-# In[62]:
+# In[81]:
 
 
 # Replace the values in the dictionary below
@@ -937,17 +1002,26 @@ sol_4_dict = {
     'How many users can we make predictions for in the test set?': c, 
     'How many users in the test set are we not able to make predictions for because of the cold start problem?': a, 
     'How many articles can we make predictions for in the test set?': b,
-    'How many articles in the test set are we not able to make predictions for because of the cold start problem?': d
+    'How many articles in the test set are we not able to make predictions for because of the cold start problem?': d,
 }
 
 t.sol_4_test(sol_4_dict)
 
 
+# I do not understand why this test does not pass. I receive the error 'float' object has no attribute 'sol_4_test'. Other students seem to have the same code please see similar code
+# 
+# please see links to students with similar code that works 
+# https://github.com/greulist137/Data-Science---Recommendations-with-IBM/blob/master/Recommendations_with_IBM.ipynb
+# https://github.com/mkucz95/recommendation_engine/blob/master/Recommendations_with_IBM.ipynb
+# https://github.com/takahish/Recommendations_with_IBM/blob/master/Recommendations_with_IBM.ipynb
+# 
+# please advise the best way to proceed 
+
 # `5.` Now use the **user_item_train** dataset from above to find U, S, and V transpose using SVD. Then find the subset of rows in the **user_item_test** dataset that you can predict using this matrix decomposition with different numbers of latent features to see how many features makes sense to keep based on the accuracy on the test data. This will require combining what was done in questions `2` - `4`.
 # 
 # Use the cells below to explore how well SVD works towards making predictions for recommendations on the test data.  
 
-# In[64]:
+# In[82]:
 
 
 # fit SVD on the user_item_train matrix
@@ -955,14 +1029,14 @@ u_train, s_train, vt_train = np.linalg.svd(user_item_train)# fit svd similar to 
 u_train.shape, s_train.shape, vt_train.shape
 
 
-# In[65]:
+# In[83]:
 
 
 # Use these cells to see how well you can use the training 
 # decomposition to predict on test data
 
 
-# In[95]:
+# In[84]:
 
 
 row_idxs = user_item_train.index.isin(test_idx)
@@ -971,7 +1045,7 @@ u_test = u_train[row_idxs, :]
 vt_test = vt_train[:,col_idxs]
 
 
-# In[96]:
+# In[85]:
 
 
 # Test data
@@ -980,7 +1054,7 @@ test_rows = user_item_test.index.isin(train_idx)
 sub_user_item_test = user_item_test.loc[test_rows]
 
 
-# In[97]:
+# In[86]:
 
 
 latent_feats = np.arange(10, 700+10, 20)
@@ -1025,7 +1099,7 @@ plt.show()
 # 
 # The accuracy is reported to be very high and it is important to verify the results in different ways. Since the dataset is inbalanced it might be interesting to explore undersampling techniques to see if that improves results.
 # 
-# We could also explore the effectiveness of recommendations by exploring metrics of customer satisfaction. We could explore metrics such as reader churn, reader retention rates, change in revenue, reader time spent on the website, number of new readers etc. 
+# Before production, we could set up an experiment to see if the new recommendations are more effective than the previous recommendations. We could implement A/B testing to see the results of the old recommendations vs the new recommendations. The old recommendations will be the control where the new recommendations are the experiment. The experiment could randomly sample two different populations of IMB readers giving one group the old recommender and one group the new recommender. We could also explore the effectiveness of recommendations by exploring metrics of customer satisfaction. We could explore metrics such as reader churn, reader bounce rate, reader retention rates, change in revenue, reader time spent on the website, number of new readers etc. 
 
 # <a id='conclusions'></a>
 # ### Extras
